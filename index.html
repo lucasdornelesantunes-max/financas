@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f1923">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>FinançasSmart</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1923;
+    --surface: #1a2535;
+    --surface2: #243044;
+    --accent: #00d4aa;
+    --accent2: #ff6b35;
+    --accent3: #a78bfa;
+    --text: #e8edf5;
+    --text-muted: #7a8fa6;
+    --danger: #ff4757;
+    --success: #00d4aa;
+    --border: rgba(255,255,255,0.07);
+    --shadow: 0 8px 32px rgba(0,0,0,0.4);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 430px;
+    margin: 0 auto;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #0f1923 0%, #1a2535 100%);
+    padding: 20px 20px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .month-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  /* BALANCE CARD */
+  .balance-card {
+    background: linear-gradient(135deg, var(--accent) 0%, #00a88a 100%);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 20px 20px 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .balance-card::before {
+    content: '';
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+  }
+
+  .balance-card::after {
+    content: '';
+    position: absolute;
+    bottom: -20px; left: 40px;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+  }
+
+  .balance-label {
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(0,0,0,0.5);
+    margin-bottom: 6px;
+  }
+
+  .balance-amount {
+    font-family: 'DM Serif Display', serif;
+    font-size: 36px;
+    color: #0f1923;
+    font-weight: 400;
+    letter-spacing: -1px;
+  }
+
+  .balance-sub {
+    display: flex;
+    gap: 20px;
+    margin-top: 16px;
+  }
+
+  .balance-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .balance-item-label {
+    font-size: 11px;
+    color: rgba(0,0,0,0.45);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .balance-item-val {
+    font-size: 16px;
+    font-weight: 600;
+    color: #0f1923;
+  }
+
+  /* STATS ROW */
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    padding: 16px 20px;
+  }
+
+  .stat-card {
+    flex: 1;
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    border: 1px solid var(--border);
+  }
+
+  .stat-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+
+  .stat-val {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    padding: 0 20px 0;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--header);
+  }
+
+  .tab {
+    flex: 1;
+    padding: 12px 8px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* MAIN CONTENT */
+  .content {
+    padding: 16px 20px;
+    padding-bottom: 100px;
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .section-title span {
+    font-size: 12px;
+    color: var(--accent);
+    cursor: pointer;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  /* TRANSACTIONS */
+  .transaction-item {
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+    animation: slideIn 0.3s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .transaction-item:hover {
+    border-color: rgba(0, 212, 170, 0.2);
+    background: var(--surface2);
+  }
+
+  .tx-icon {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .tx-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .tx-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tx-cat {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .tx-amount {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--danger);
+    white-space: nowrap;
+  }
+
+  .tx-amount.income {
+    color: var(--success);
+  }
+
+  .tx-date {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  /* CATEGORIES */
+  .category-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .cat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .cat-card:hover {
+    border-color: rgba(0,212,170,0.3);
+  }
+
+  .cat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .cat-emoji { font-size: 22px; }
+
+  .cat-percent {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .cat-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .cat-amount {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 2px;
+  }
+
+  .cat-bar {
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 2px;
+    margin-top: 10px;
+    overflow: hidden;
+  }
+
+  .cat-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s ease;
+  }
+
+  /* INCOME SECTION */
+  .income-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .income-name {
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .income-val {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--success);
+  }
+
+  .income-input {
+    background: transparent;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--success);
+    font-family: 'DM Sans', sans-serif;
+    text-align: right;
+    width: 120px;
+    outline: none;
+  }
+
+  /* FAB - Camera Button */
+  .fab {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, var(--accent), #00a88a);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0,212,170,0.4);
+    z-index: 90;
+    border: none;
+    transition: all 0.2s;
+  }
+
+  .fab:active { transform: translateX(-50%) scale(0.94); }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 430px;
+    background: rgba(15,25,35,0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 8px 0 16px;
+    z-index: 80;
+  }
+
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 0;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .nav-item.active { color: var(--accent); }
+  .nav-item-icon { font-size: 22px; line-height: 1; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    display: flex;
+    align-items: flex-end;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 24px 24px 0 0;
+    width: 100%;
+    max-width: 430px;
+    margin: 0 auto;
+    padding: 24px 20px 40px;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+
+  .modal-overlay.open .modal {
+    transform: translateY(0);
+  }
+
+  .modal-handle {
+    width: 40px;
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+
+  .modal-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  /* CAMERA ZONE */
+  .camera-zone {
+    background: var(--surface2);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .camera-zone.drag-over {
+    border-color: var(--accent);
+    background: rgba(0,212,170,0.08);
+  }
+
+  .camera-zone input[type=file] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .camera-icon { font-size: 48px; margin-bottom: 12px; }
+  .camera-label { font-size: 15px; font-weight: 500; margin-bottom: 6px; }
+  .camera-sub { font-size: 13px; color: var(--text-muted); }
+
+  /* AI RESULT */
+  .ai-result {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(0,212,170,0.2);
+    display: none;
+  }
+
+  .ai-result.visible { display: block; animation: slideIn 0.4s ease; }
+
+  .ai-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,212,170,0.12);
+    border: 1px solid rgba(0,212,170,0.3);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  /* FORM FIELDS */
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; display: block; }
+
+  .form-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 15px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-input:focus { border-color: var(--accent); }
+
+  select.form-input {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%237a8fa6'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 20px;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 15px;
+    border-radius: var(--radius-sm);
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #00a88a);
+    color: #0f1923;
+  }
+
+  .btn-primary:active { transform: scale(0.98); }
+
+  /* LOADING SPINNER */
+  .spinner {
+    display: inline-block;
+    width: 20px; height: 20px;
+    border: 2px solid rgba(0,212,170,0.2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 8px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-state {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  .loading-state.visible { display: flex; }
+
+  /* RECEIPT PREVIEW */
+  .receipt-preview {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    margin-bottom: 12px;
+    display: none;
+  }
+
+  .receipt-preview.visible { display: block; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+  }
+
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-title { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+  .empty-sub { font-size: 13px; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 300;
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* CHART */
+  .donut-wrap {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .donut-svg { flex-shrink: 0; }
+
+  .donut-legend { flex: 1; }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .legend-item span { margin-left: auto; font-weight: 600; color: var(--text); }
+
+  /* DELETE BTN */
+  .tx-delete {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .transaction-item:hover .tx-delete { opacity: 1; }
+
+  /* Page views */
+  .page { display: none; }
+  .page.active { display: block; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">FinançasSmart</div>
+    <div class="month-badge" id="monthBadge">Abril 2026</div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showPage('dashboard')">📊 Resumo</div>
+    <div class="tab" onclick="showPage('gastos')">💸 Gastos</div>
+    <div class="tab" onclick="showPage('receitas')">💰 Receitas</div>
+  </div>
+</div>
+
+<!-- BALANCE CARD -->
+<div class="balance-card" style="margin-top:16px;">
+  <div class="balance-label">Saldo do Mês</div>
+  <div class="balance-amount" id="saldoDisplay">R$ 0,00</div>
+  <div class="balance-sub">
+    <div class="balance-item">
+      <div class="balance-item-label">Receitas</div>
+      <div class="balance-item-val" id="receitaDisplay">R$ 0,00</div>
+    </div>
+    <div class="balance-item">
+      <div class="balance-item-label">Gastos</div>
+      <div class="balance-item-val" id="gastosDisplay">R$ 0,00</div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(255,107,53,0.12)">🔥</div>
+    <div class="stat-val" id="transCount">0</div>
+    <div class="stat-label">Transações</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(167,139,250,0.12)">📷</div>
+    <div class="stat-val" id="receiptCount">0</div>
+    <div class="stat-label">Recibos lidos</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(0,212,170,0.12)">🏷️</div>
+    <div class="stat-val" id="catCount">0</div>
+    <div class="stat-label">Categorias</div>
+  </div>
+</div>
+
+<!-- PAGES -->
+<div class="content">
+
+  <!-- DASHBOARD PAGE -->
+  <div class="page active" id="page-dashboard">
+    <div class="section-title">Categorias <span onclick="openModal()">+ Adicionar</span></div>
+
+    <div id="donutChart"></div>
+    <div class="category-grid" id="catGrid"></div>
+
+    <div class="section-title">Últimas Transações</div>
+    <div id="recentTx">
+      <div class="empty-state">
+        <div class="empty-icon">🧾</div>
+        <div class="empty-title">Nenhum gasto ainda</div>
+        <div class="empty-sub">Fotografe um recibo ou adicione manualmente</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GASTOS PAGE -->
+  <div class="page" id="page-gastos">
+    <div class="section-title">Todos os Gastos <span onclick="openModal()">+ Adicionar</span></div>
+    <div id="allTxList"></div>
+  </div>
+
+  <!-- RECEITAS PAGE -->
+  <div class="page" id="page-receitas">
+    <div class="section-title">Entradas do Mês</div>
+    <div class="income-card">
+      <div class="income-name">💼 Salário</div>
+      <input class="income-input" type="number" id="salario" placeholder="0,00" oninput="updateTotals()">
+    </div>
+    <div class="income-card">
+      <div class="income-name">💻 Freelance</div>
+      <input class="income-input" type="number" id="freelance" placeholder="0,00" oninput="updateTotals()">
+    </div>
+    <div class="income-card">
+      <div class="income-name">✨ Outros</div>
+      <input class="income-input" type="number" id="outrosReceita" placeholder="0,00" oninput="updateTotals()">
+    </div>
+    <div style="height:12px;"></div>
+    <div class="section-title">Total de Receitas</div>
+    <div class="income-card" style="background:rgba(0,212,170,0.08); border-color:rgba(0,212,170,0.2);">
+      <div class="income-name">📈 Total</div>
+      <div class="income-val" id="totalReceitaCard">R$ 0,00</div>
+    </div>
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="openModal()" title="Adicionar / Fotografar Recibo">📷</button>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="showPage('dashboard')">
+    <div class="nav-item-icon">📊</div>Resumo
+  </div>
+  <div class="nav-item" onclick="showPage('gastos')">
+    <div class="nav-item-icon">💸</div>Gastos
+  </div>
+  <div class="nav-item" style="width:64px;"></div>
+  <div class="nav-item" onclick="showPage('receitas')">
+    <div class="nav-item-icon">💰</div>Receitas
+  </div>
+  <div class="nav-item" onclick="showExport()">
+    <div class="nav-item-icon">📤</div>Exportar
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Adicionar Gasto</div>
+
+    <!-- Camera Zone -->
+    <div class="camera-zone" id="cameraZone">
+      <input type="file" accept="image/*" capture="environment" id="fileInput" onchange="handleImage(event)">
+      <div class="camera-icon">📷</div>
+      <div class="camera-label">Fotografar Recibo ou Nota Fiscal</div>
+      <div class="camera-sub">A IA vai preencher os dados automaticamente</div>
+    </div>
+
+    <img class="receipt-preview" id="receiptPreview">
+
+    <div class="loading-state" id="loadingState">
+      <div class="spinner"></div>
+      Analisando recibo com IA...
+    </div>
+
+    <div class="ai-result" id="aiResult">
+      <div class="ai-badge">✨ Preenchido pela IA</div>
+      <div style="font-size:13px; color:var(--text-muted);" id="aiDescription"></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Descrição</label>
+      <input class="form-input" id="txDesc" type="text" placeholder="Ex: Compras no mercado">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Categoria</label>
+      <select class="form-input" id="txCat">
+        <option value="">Selecionar categoria...</option>
+        <option value="🛒 Supermercado">🛒 Supermercado</option>
+        <option value="⛽ Combustível">⛽ Combustível</option>
+        <option value="🍔 Alimentação">🍔 Alimentação</option>
+        <option value="🏥 Saúde">🏥 Saúde</option>
+        <option value="🎉 Lazer">🎉 Lazer</option>
+        <option value="👔 Vestuário">👔 Vestuário</option>
+        <option value="📱 Tecnologia">📱 Tecnologia</option>
+        <option value="🏠 Moradia">🏠 Moradia</option>
+        <option value="🚗 Transporte">🚗 Transporte</option>
+        <option value="📚 Educação">📚 Educação</option>
+        <option value="💊 Farmácia">💊 Farmácia</option>
+        <option value="⚡ Contas">⚡ Contas</option>
+        <option value="🐾 Pets">🐾 Pets</option>
+        <option value="🎁 Presentes">🎁 Presentes</option>
+        <option value="✈️ Viagem">✈️ Viagem</option>
+        <option value="💼 Trabalho">💼 Trabalho</option>
+        <option value="📦 Outros">📦 Outros</option>
+      </select>
+    </div>
+
+    <div style="display:flex;gap:12px;">
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">Valor (R$)</label>
+        <input class="form-input" id="txVal" type="number" step="0.01" placeholder="0,00">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">Data</label>
+        <input class="form-input" id="txDate" type="date">
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="addTransaction()">Salvar Gasto</button>
+    <div style="height:12px;"></div>
+    <button class="btn" style="background:var(--surface2); color:var(--text-muted);" onclick="closeModal()">Cancelar</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== STATE =====
+let transactions = JSON.parse(localStorage.getItem('fin_tx') || '[]');
+let receiptCount = parseInt(localStorage.getItem('fin_rc') || '0');
+
+const COLORS = ['#00d4aa','#ff6b35','#a78bfa','#ffd166','#06d6a0','#ef476f','#118ab2','#ffc43d','#8ecae6','#219ebc','#023047','#ffb703','#fb8500','#e63946','#457b9d'];
+
+function save() {
+  localStorage.setItem('fin_tx', JSON.stringify(transactions));
+  localStorage.setItem('fin_rc', receiptCount);
+}
+
+// ===== CATEGORIES =====
+function getCatTotals() {
+  const map = {};
+  transactions.forEach(t => {
+    const k = t.cat || '📦 Outros';
+    map[k] = (map[k] || 0) + t.val;
+  });
+  return map;
+}
+
+// ===== RENDER =====
+function updateTotals() {
+  const sal = parseFloat(document.getElementById('salario').value)||0;
+  const fre = parseFloat(document.getElementById('freelance').value)||0;
+  const out = parseFloat(document.getElementById('outrosReceita').value)||0;
+  const receita = sal + fre + out;
+  const gastos = transactions.reduce((a,t)=>a+t.val, 0);
+  const saldo = receita - gastos;
+
+  document.getElementById('saldoDisplay').textContent = fmt(saldo);
+  document.getElementById('receitaDisplay').textContent = fmt(receita);
+  document.getElementById('gastosDisplay').textContent = fmt(gastos);
+  document.getElementById('totalReceitaCard').textContent = fmt(receita);
+  document.getElementById('transCount').textContent = transactions.length;
+  document.getElementById('receiptCount').textContent = receiptCount;
+
+  const cats = getCatTotals();
+  document.getElementById('catCount').textContent = Object.keys(cats).length;
+
+  renderCategories(cats, gastos);
+  renderChart(cats, gastos);
+  renderRecentTx();
+  renderAllTx();
+}
+
+function renderCategories(cats, total) {
+  const grid = document.getElementById('catGrid');
+  const entries = Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  if (!entries.length) { grid.innerHTML = ''; return; }
+  grid.innerHTML = entries.map(([cat, val], i) => {
+    const pct = total > 0 ? Math.round(val/total*100) : 0;
+    return `<div class="cat-card">
+      <div class="cat-header">
+        <div class="cat-emoji">${cat.split(' ')[0]}</div>
+        <div class="cat-percent">${pct}%</div>
+      </div>
+      <div class="cat-name">${cat.replace(/^[^ ]+ /,'')}</div>
+      <div class="cat-amount">${fmt(val)}</div>
+      <div class="cat-bar"><div class="cat-bar-fill" style="width:${pct}%;background:${COLORS[i%COLORS.length]}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderChart(cats, total) {
+  const el = document.getElementById('donutChart');
+  const entries = Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  if (!entries.length || total === 0) { el.innerHTML = ''; return; }
+
+  const size = 100, cx = 50, cy = 50, r = 38, stroke = 14;
+  const circ = 2 * Math.PI * r;
+  let offset = 0;
+  let segs = '';
+
+  entries.forEach(([cat, val], i) => {
+    const frac = val / total;
+    const dash = frac * circ;
+    segs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none"
+      stroke="${COLORS[i%COLORS.length]}" stroke-width="${stroke}"
+      stroke-dasharray="${dash} ${circ - dash}"
+      stroke-dashoffset="${-offset}"
+      transform="rotate(-90 ${cx} ${cy})"/>`;
+    offset += dash;
+  });
+
+  const legend = entries.map(([cat,val],i) =>
+    `<div class="legend-item"><div class="legend-dot" style="background:${COLORS[i%COLORS.length]}"></div>${cat}<span>${fmt(val)}</span></div>`
+  ).join('');
+
+  el.innerHTML = `<div class="donut-wrap">
+    <svg class="donut-svg" viewBox="0 0 100 100" width="120" height="120">
+      ${segs}
+      <text x="50" y="47" text-anchor="middle" font-size="9" fill="#7a8fa6" font-family="DM Sans">Total</text>
+      <text x="50" y="58" text-anchor="middle" font-size="8" fill="#e8edf5" font-family="DM Sans" font-weight="bold">${fmt(total).replace('R$ ','')}</text>
+    </svg>
+    <div class="donut-legend">${legend}</div>
+  </div>`;
+}
+
+function renderRecentTx() {
+  const el = document.getElementById('recentTx');
+  const recent = [...transactions].reverse().slice(0,5);
+  if (!recent.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🧾</div><div class="empty-title">Nenhum gasto ainda</div><div class="empty-sub">Fotografe um recibo ou adicione manualmente</div></div>`;
+    return;
+  }
+  el.innerHTML = recent.map(t => txHTML(t)).join('');
+}
+
+function renderAllTx() {
+  const el = document.getElementById('allTxList');
+  const all = [...transactions].reverse();
+  if (!all.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">💸</div><div class="empty-title">Sem gastos registrados</div><div class="empty-sub">Toque em + para adicionar</div></div>`;
+    return;
+  }
+  el.innerHTML = all.map(t => txHTML(t)).join('');
+}
+
+function txHTML(t) {
+  const emoji = t.cat ? t.cat.split(' ')[0] : '📦';
+  const catColor = COLORS[Object.keys(getCatTotals()).indexOf(t.cat) % COLORS.length] || '#7a8fa6';
+  return `<div class="transaction-item" onclick="">
+    <div class="tx-icon" style="background:${catColor}22">${emoji}</div>
+    <div class="tx-info">
+      <div class="tx-name">${t.desc || 'Sem descrição'}</div>
+      <div class="tx-cat">${t.cat || 'Outros'} · ${t.date || ''}</div>
+    </div>
+    <div>
+      <div class="tx-amount">-${fmt(t.val)}</div>
+      <div class="tx-date">${t.fromReceipt ? '📷' : ''}</div>
+    </div>
+    <button class="tx-delete" onclick="deleteTx('${t.id}');event.stopPropagation()">✕</button>
+  </div>`;
+}
+
+function deleteTx(id) {
+  transactions = transactions.filter(t => t.id !== id);
+  save();
+  updateTotals();
+  showToast('🗑️ Transação removida');
+}
+
+function fmt(v) {
+  return 'R$ ' + Math.abs(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+// ===== PAGES =====
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', ['dashboard','gastos','receitas'][i] === name);
+  });
+  document.querySelectorAll('.nav-item').forEach((n, i) => {
+    n.classList.toggle('active', i === ['dashboard','gastos','receitas'].indexOf(name));
+  });
+}
+
+// ===== MODAL =====
+function openModal() {
+  document.getElementById('addModal').classList.add('open');
+  document.getElementById('txDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('aiResult').classList.remove('visible');
+  document.getElementById('receiptPreview').classList.remove('visible');
+  document.getElementById('loadingState').classList.remove('visible');
+  document.getElementById('txDesc').value = '';
+  document.getElementById('txCat').value = '';
+  document.getElementById('txVal').value = '';
+  document.getElementById('fileInput').value = '';
+}
+
+function closeModal() {
+  document.getElementById('addModal').classList.remove('open');
+}
+
+document.getElementById('addModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ===== IMAGE / AI =====
+async function handleImage(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Show preview
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('receiptPreview');
+    preview.src = e.target.result;
+    preview.classList.add('visible');
+  };
+  reader.readAsDataURL(file);
+
+  // Show loading
+  document.getElementById('loadingState').classList.add('visible');
+  document.getElementById('aiResult').classList.remove('visible');
+  document.getElementById('cameraZone').style.opacity = '0.5';
+
+  // Convert to base64
+  const base64 = await fileToBase64(file);
+
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{
+          role: "user",
+          content: [
+            {
+              type: "image",
+              source: { type: "base64", media_type: file.type || "image/jpeg", data: base64 }
+            },
+            {
+              type: "text",
+              text: `Você é um assistente financeiro. Analise esta imagem de recibo/nota fiscal e extraia as informações.
+
+Responda APENAS com um JSON válido no seguinte formato (sem markdown, sem texto extra):
+{
+  "descricao": "descrição curta do estabelecimento/compra",
+  "categoria": "uma das categorias: Supermercado, Combustível, Alimentação, Saúde, Lazer, Vestuário, Tecnologia, Moradia, Transporte, Educação, Farmácia, Contas, Pets, Presentes, Viagem, Trabalho, Outros",
+  "valor": 0.00,
+  "data": "DD/MM/YYYY",
+  "estabelecimento": "nome do estabelecimento",
+  "resumo": "resumo em 1 frase do que foi identificado"
+}
+
+Regras para categoria:
+- Supermercado: mercados, hipermercados, atacado
+- Combustível: postos de gasolina, etanol, diesel
+- Alimentação: restaurantes, lanchonetes, delivery, cafés, padarias
+- Saúde: hospitais, clínicas, laboratórios, planos de saúde
+- Farmácia: drogarias, farmácias
+- Transporte: taxi, uber, estacionamento, pedágio, oficina
+- Tecnologia: eletrônicos, informática, celular
+- Lazer: cinema, shows, jogos, parques
+- Moradia: aluguel, condomínio, material de construção
+- Contas: energia, água, internet, telefone, TV
+- Educação: escola, curso, livros
+- Vestuário: roupas, calçados, acessórios
+
+Se não conseguir identificar algum campo, use null para o valor numérico e string vazia para texto.`
+            }
+          ]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content?.[0]?.text || '{}';
+    const clean = text.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+
+    // Fill form
+    if (parsed.descricao) document.getElementById('txDesc').value = parsed.estabelecimento ? `${parsed.estabelecimento}` : parsed.descricao;
+    if (parsed.categoria) {
+      const catMap = {
+        'Supermercado':'🛒 Supermercado','Combustível':'⛽ Combustível','Alimentação':'🍔 Alimentação',
+        'Saúde':'🏥 Saúde','Lazer':'🎉 Lazer','Vestuário':'👔 Vestuário','Tecnologia':'📱 Tecnologia',
+        'Moradia':'🏠 Moradia','Transporte':'🚗 Transporte','Educação':'📚 Educação',
+        'Farmácia':'💊 Farmácia','Contas':'⚡ Contas','Pets':'🐾 Pets','Presentes':'🎁 Presentes',
+        'Viagem':'✈️ Viagem','Trabalho':'💼 Trabalho','Outros':'📦 Outros'
+      };
+      document.getElementById('txCat').value = catMap[parsed.categoria] || '📦 Outros';
+    }
+    if (parsed.valor && parsed.valor > 0) document.getElementById('txVal').value = parsed.valor;
+    if (parsed.data) {
+      const [d,m,y] = parsed.data.split('/');
+      if (d && m && y) document.getElementById('txDate').value = `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+    }
+
+    document.getElementById('aiDescription').textContent = parsed.resumo || 'Recibo analisado com sucesso!';
+    document.getElementById('aiResult').classList.add('visible');
+    receiptCount++;
+    save();
+
+  } catch(err) {
+    document.getElementById('aiDescription').textContent = '⚠️ Não foi possível analisar. Preencha manualmente.';
+    document.getElementById('aiResult').classList.add('visible');
+  }
+
+  document.getElementById('loadingState').classList.remove('visible');
+  document.getElementById('cameraZone').style.opacity = '1';
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ===== ADD TRANSACTION =====
+function addTransaction() {
+  const desc = document.getElementById('txDesc').value.trim();
+  const cat = document.getElementById('txCat').value;
+  const val = parseFloat(document.getElementById('txVal').value);
+  const date = document.getElementById('txDate').value;
+
+  if (!desc || !val || val <= 0) {
+    showToast('⚠️ Preencha descrição e valor!');
+    return;
+  }
+
+  const fromReceipt = document.getElementById('aiResult').classList.contains('visible');
+  const [y,m,d] = date.split('-');
+  const dateStr = date ? `${d}/${m}/${y}` : '';
+
+  transactions.push({
+    id: Date.now().toString(),
+    desc, cat, val,
+    date: dateStr,
+    fromReceipt
+  });
+
+  save();
+  updateTotals();
+  closeModal();
+  showToast(fromReceipt ? '📷 Recibo salvo com sucesso!' : '✅ Gasto adicionado!');
+}
+
+// ===== TOAST =====
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ===== EXPORT =====
+function showExport() {
+  const cats = getCatTotals();
+  const gastos = transactions.reduce((a,t)=>a+t.val,0);
+  const sal = parseFloat(document.getElementById('salario').value)||0;
+  const fre = parseFloat(document.getElementById('freelance').value)||0;
+  const out = parseFloat(document.getElementById('outrosReceita').value)||0;
+  const receita = sal + fre + out;
+
+  let csv = 'FinançasSmart - Exportação\n\n';
+  csv += 'RECEITAS\n';
+  csv += `Salário,${sal}\nFreelance,${fre}\nOutros,${out}\nTotal Receita,${receita}\n\n`;
+  csv += 'GASTOS\nData,Descrição,Categoria,Valor\n';
+  transactions.forEach(t => {
+    csv += `${t.date},${t.desc},${t.cat},${t.val}\n`;
+  });
+  csv += `\nTotal Gastos,${gastos}\nSaldo,${receita - gastos}\n`;
+
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'financas-abril-2026.csv';
+  a.click();
+  showToast('📤 Arquivo exportado!');
+}
+
+// ===== INIT =====
+const today = new Date();
+document.getElementById('monthBadge').textContent =
+  today.toLocaleDateString('pt-BR', {month:'long', year:'numeric'})
+    .replace(/^\w/, c => c.toUpperCase());
+
+updateTotals();
+</script>
+</body>
+</html>
