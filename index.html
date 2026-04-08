@@ -21,6 +21,21 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:430px;margin:0 auto;overflow-x:hidden;}
 
+/* ── PASSWORD SCREEN ── */
+.pass-screen{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;gap:20px;max-width:430px;margin:0 auto;}
+.pass-screen.hidden{display:none;}
+.pass-logo{font-family:'DM Serif Display',serif;font-size:28px;background:linear-gradient(90deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;}
+.pass-sub{font-size:14px;color:var(--text-muted);text-align:center;margin-top:-10px;}
+.pass-lock{font-size:56px;text-align:center;}
+.pass-input-wrap{width:100%;position:relative;}
+.pass-input{width:100%;background:var(--surface2);border:2px solid var(--border);border-radius:var(--radius-sm);padding:14px 48px 14px 16px;font-size:20px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;text-align:center;letter-spacing:4px;transition:border-color .2s;}
+.pass-input:focus{border-color:var(--accent);}
+.pass-input.error{border-color:var(--danger);animation:shake .4s ease;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-8px);}75%{transform:translateX(8px);}}
+.pass-toggle{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;}
+.pass-error{font-size:13px;color:var(--danger);text-align:center;min-height:18px;}
+.pass-hint{font-size:11px;color:var(--text-muted);text-align:center;}
+
 /* ── USER SCREEN ── */
 .user-screen{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;gap:24px;max-width:430px;margin:0 auto;}
 .user-screen.hidden{display:none;}
@@ -272,6 +287,22 @@ select.form-input{appearance:none;-webkit-appearance:none;background-image:url("
 </style>
 </head>
 <body>
+
+<!-- ══ PASSWORD SCREEN ══ -->
+<div class="pass-screen" id="passScreen">
+  <div class="pass-lock">🔐</div>
+  <div class="pass-logo">FinançasSmart</div>
+  <div class="pass-sub">Controle Financeiro do Casal</div>
+  <div class="pass-input-wrap">
+    <input class="pass-input" type="password" id="passInput" placeholder="••••••••" maxlength="30"
+      onkeydown="if(event.key==='Enter')checkPass()"
+      oninput="document.getElementById('passError').textContent=''">
+    <button class="pass-toggle" onclick="togglePassVis()" id="passToggle">👁️</button>
+  </div>
+  <div class="pass-error" id="passError"></div>
+  <button class="btn btn-primary" style="max-width:280px;" onclick="checkPass()">🔓 Entrar</button>
+  <div class="pass-hint">App exclusivo do casal Antunes</div>
+</div>
 
 <!-- ══ USER SELECTION ══ -->
 <div class="user-screen" id="userScreen">
@@ -577,6 +608,37 @@ const db = getFirestore(app);
 const DOC_ID = 'casal'; // único documento compartilhado
 
 const COLORS=['#00d4aa','#ff6b35','#a78bfa','#ffd166','#06d6a0','#ef476f','#118ab2','#ffc43d','#8ecae6','#219ebc','#ffb703','#fb8500','#e63946','#457b9d'];
+
+// ══════════════════════════════════════════════
+//  PASSWORD
+// ══════════════════════════════════════════════
+const SENHA = 'Aquiles1993';
+function checkPass(){
+  const val = document.getElementById('passInput').value;
+  if(val === SENHA){
+    document.getElementById('passScreen').classList.add('hidden');
+    // Salva sessão por 8h
+    sessionStorage.setItem('fin_auth', Date.now());
+  } else {
+    const inp = document.getElementById('passInput');
+    inp.classList.add('error');
+    document.getElementById('passError').textContent = '❌ Senha incorreta. Tente novamente.';
+    inp.value = '';
+    setTimeout(()=>inp.classList.remove('error'), 500);
+  }
+}
+function togglePassVis(){
+  const inp = document.getElementById('passInput');
+  const btn = document.getElementById('passToggle');
+  if(inp.type === 'password'){ inp.type='text'; btn.textContent='🙈'; }
+  else { inp.type='password'; btn.textContent='👁️'; }
+}
+function checkSession(){
+  const auth = sessionStorage.getItem('fin_auth');
+  if(auth && Date.now() - parseInt(auth) < 8*60*60*1000){
+    document.getElementById('passScreen').classList.add('hidden');
+  }
+}
 
 // ── State ──
 let currentUser=null;
@@ -1276,6 +1338,8 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 // ══════════════════════════════════════════════
 refreshMonthLabel();
 // Expõe funções ao HTML (necessário para type="module")
+window.checkPass=checkPass;
+window.togglePassVis=togglePassVis;
 window.showNameSetup=showNameSetup;
 window.cancelNameSetup=cancelNameSetup;
 window.saveNames=saveNames;
@@ -1308,6 +1372,7 @@ window.deleteAport=deleteAport;
 window.saveIncome=saveIncome;
 
 // Carrega dados do Firebase
+checkSession();
 load();
 </script>
 </body>
