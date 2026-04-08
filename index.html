@@ -308,7 +308,7 @@ select.form-input{appearance:none;-webkit-appearance:none;background-image:url("
       <div class="ubadge-name" id="badgeName">—</div>
     </div>
   </div>
-  <div class="sync-bar"><div class="sdot"></div><span id="syncStatus">Dados compartilhados</span></div>
+  <div class="sync-bar"><div class="sdot"></div><span id="syncStatus">⏳ Conectando ao Firebase...</span></div>
   <div class="tabs">
     <div class="tab active" onclick="showPage('dashboard')">📊 Resumo</div>
     <div class="tab" onclick="showPage('gastos')">💸 Gastos</div>
@@ -555,15 +555,27 @@ select.form-input{appearance:none;-webkit-appearance:none;background-image:url("
 
 <div class="toast" id="toast"></div>
 
-<script>
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
 // ══════════════════════════════════════════════
-//  STORAGE KEYS
+//  FIREBASE CONFIG
 // ══════════════════════════════════════════════
-const K = {
-  tx:'fin3_tx', rc:'fin3_rc', goals:'fin3_goals',
-  bills:'fin3_bills', income:'fin3_income', names:'fin3_names',
-  invests:'fin3_invests'  // [{id,name,type,goal,aports:[{id,val,month,user,note}]}]
+const firebaseConfig = {
+  apiKey: "AIzaSyBNjveG_5dJv2ODtautCsbuNxUTT3hObnE",
+  authDomain: "financas-casal-8de0f.firebaseapp.com",
+  projectId: "financas-casal-8de0f",
+  storageBucket: "financas-casal-8de0f.firebasestorage.app",
+  messagingSenderId: "676638771866",
+  appId: "1:676638771866:web:e467cd2fbda649201dad23"
 };
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const DOC_ID = 'casal'; // único documento compartilhado
+
 const COLORS=['#00d4aa','#ff6b35','#a78bfa','#ffd166','#06d6a0','#ef476f','#118ab2','#ffc43d','#8ecae6','#219ebc','#ffb703','#fb8500','#e63946','#457b9d'];
 
 // ── State ──
@@ -573,27 +585,65 @@ let income={eu:{sal:0,fre:0,out:0},conjuge:{sal:0,fre:0,out:0}};
 let names={eu:'Eu',conjuge:'Cônjuge'};
 let receiptCount=0;
 let viewYear=new Date().getFullYear(), viewMonth=new Date().getMonth();
+let _saving=false;
 
 // ══════════════════════════════════════════════
-//  PERSIST
+//  FIREBASE: LOAD + REALTIME LISTENER
 // ══════════════════════════════════════════════
-function load(){
-  try{transactions=JSON.parse(localStorage.getItem(K.tx)||'[]');}catch{transactions=[];}
-  try{goals=JSON.parse(localStorage.getItem(K.goals)||'[]');}catch{goals=[];}
-  try{bills=JSON.parse(localStorage.getItem(K.bills)||'[]');}catch{bills=[];}
-  try{income=JSON.parse(localStorage.getItem(K.income)||'{"eu":{"sal":0,"fre":0,"out":0},"conjuge":{"sal":0,"fre":0,"out":0}}');}catch{income={eu:{sal:0,fre:0,out:0},conjuge:{sal:0,fre:0,out:0}};}
-  try{names=JSON.parse(localStorage.getItem(K.names)||'{"eu":"Eu","conjuge":"Cônjuge"}');}catch{names={eu:'Eu',conjuge:'Cônjuge'};}
-  try{invests=JSON.parse(localStorage.getItem(K.invests)||'[]');}catch{invests=[];}
-  receiptCount=parseInt(localStorage.getItem(K.rc)||'0');
+async function load(){
+  showSyncStatus('⏳ Carregando dados...');
+  try{
+    const ref=doc(db,'financas',DOC_ID);
+    // Realtime listener — atualiza automaticamente quando o cônjuge salvar
+    onSnapshot(ref,(snap)=>{
+      if(snap.exists()){
+        const d=snap.data();
+        transactions=d.transactions||[];
+        goals=d.goals||[];
+        bills=d.bills||[];
+        invests=d.invests||[];
+        income=d.income||{eu:{sal:0,fre:0,out:0},conjuge:{sal:0,fre:0,out:0}};
+        names=d.names||{eu:'Eu',conjuge:'Cônjuge'};
+        receiptCount=d.receiptCount||0;
+        document.getElementById('uName1').textContent=names.eu;
+        document.getElementById('uName2').textContent=names.conjuge;
+        if(currentUser){
+          loadIncomeFields();
+          updateAll();
+        }
+        showSyncStatus(`🟢 Sincronizado — ${names.eu} & ${names.conjuge}`);
+      } else {
+        // Primeira vez: cria documento vazio
+        persist();
+        showSyncStatus(`🟢 Banco criado com sucesso!`);
+      }
+    });
+  }catch(e){
+    console.error(e);
+    showSyncStatus('🔴 Erro de conexão — verifique a internet');
+  }
 }
-function persist(){
-  localStorage.setItem(K.tx,JSON.stringify(transactions));
-  localStorage.setItem(K.goals,JSON.stringify(goals));
-  localStorage.setItem(K.bills,JSON.stringify(bills));
-  localStorage.setItem(K.income,JSON.stringify(income));
-  localStorage.setItem(K.names,JSON.stringify(names));
-  localStorage.setItem(K.invests,JSON.stringify(invests));
-  localStorage.setItem(K.rc,receiptCount);
+
+async function persist(){
+  if(_saving)return;
+  _saving=true;
+  try{
+    const ref=doc(db,'financas',DOC_ID);
+    await setDoc(ref,{
+      transactions,goals,bills,invests,income,names,receiptCount,
+      updatedAt: new Date().toISOString(),
+      updatedBy: currentUser||'sistema'
+    });
+  }catch(e){
+    console.error('Erro ao salvar:',e);
+    showToast('❌ Erro ao salvar. Verifique a conexão.');
+  }
+  _saving=false;
+}
+
+function showSyncStatus(msg){
+  const el=document.getElementById('syncStatus');
+  if(el)el.textContent=msg;
 }
 
 // ══════════════════════════════════════════════
@@ -613,9 +663,9 @@ function saveNames(){
   const n1=document.getElementById('nameInput1').value.trim();
   const n2=document.getElementById('nameInput2').value.trim();
   if(n1)names.eu=n1; if(n2)names.conjuge=n2;
-  persist();
   document.getElementById('uName1').textContent=names.eu;
   document.getElementById('uName2').textContent=names.conjuge;
+  persist();
   cancelNameSetup();
 }
 function selectUser(who){
@@ -625,8 +675,8 @@ function selectUser(who){
   document.getElementById('badgeDot').style.background=isEu?'rgba(0,212,170,.2)':'rgba(244,114,182,.2)';
   document.getElementById('badgeDot').textContent='👤';
   document.getElementById('badgeName').textContent=names[who];
-  document.getElementById('syncStatus').textContent=`${names.eu} e ${names.conjuge} — dados compartilhados`;
   document.getElementById('recLbl').textContent=names[who];
+  showSyncStatus(`🟢 ${names.eu} & ${names.conjuge} — sincronizado`);
   loadIncomeFields();
   updateAll();
 }
@@ -1224,12 +1274,41 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 // ══════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════
-load();
-document.getElementById('uName1').textContent=names.eu;
-document.getElementById('uName2').textContent=names.conjuge;
 refreshMonthLabel();
-updateAll();
-if(names.eu==='Eu'&&names.conjuge==='Cônjuge'){showNameSetup();}
+// Expõe funções ao HTML (necessário para type="module")
+window.showNameSetup=showNameSetup;
+window.cancelNameSetup=cancelNameSetup;
+window.saveNames=saveNames;
+window.selectUser=selectUser;
+window.switchUser=switchUser;
+window.changeMonth=changeMonth;
+window.showPage=showPage;
+window.openModal=openModal;
+window.closeModal=closeModal;
+window.handleImage=handleImage;
+window.addTransaction=addTransaction;
+window.deleteTx=deleteTx;
+window.openGoalModal=openGoalModal;
+window.closeGoalModal=closeGoalModal;
+window.saveGoal=saveGoal;
+window.deleteGoal=deleteGoal;
+window.openBillModal=openBillModal;
+window.closeBillModal=closeBillModal;
+window.saveBill=saveBill;
+window.deleteBill=deleteBill;
+window.openInvestModal=openInvestModal;
+window.closeInvestModal=closeInvestModal;
+window.saveInvest=saveInvest;
+window.deleteInvest=deleteInvest;
+window.openGoalEditModal=openGoalEditModal;
+window.openAportModal=openAportModal;
+window.closeAportModal=closeAportModal;
+window.saveAport=saveAport;
+window.deleteAport=deleteAport;
+window.saveIncome=saveIncome;
+
+// Carrega dados do Firebase
+load();
 </script>
 </body>
 </html>
