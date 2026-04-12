@@ -436,9 +436,9 @@ select.form-input{appearance:none;-webkit-appearance:none;background-image:url("
   <!-- RECEITAS -->
   <div class="page" id="page-receitas">
     <div class="section-title">Suas Receitas — <span id="recLbl" style="color:var(--accent);text-transform:none;letter-spacing:0;font-size:12px;"></span></div>
-    <div class="income-card"><div class="income-name">💼 Salário</div><input class="income-input" type="number" id="salario" placeholder="0,00" oninput="saveIncome()"></div>
-    <div class="income-card"><div class="income-name">💻 Freelance</div><input class="income-input" type="number" id="freelance" placeholder="0,00" oninput="saveIncome()"></div>
-    <div class="income-card"><div class="income-name">✨ Outros</div><input class="income-input" type="number" id="outrosReceita" placeholder="0,00" oninput="saveIncome()"></div>
+    <div class="income-card"><div class="income-name">💼 Salário</div><input class="income-input" type="text" inputmode="decimal" id="salario" placeholder="0,00" oninput="fmtIncomeInput(this)" onblur="saveIncome()"></div>
+    <div class="income-card"><div class="income-name">💻 Freelance</div><input class="income-input" type="text" inputmode="decimal" id="freelance" placeholder="0,00" oninput="fmtIncomeInput(this)" onblur="saveIncome()"></div>
+    <div class="income-card"><div class="income-name">✨ Outros</div><input class="income-input" type="text" inputmode="decimal" id="outrosReceita" placeholder="0,00" oninput="fmtIncomeInput(this)" onblur="saveIncome()"></div>
     <div style="height:8px;"></div>
     <div class="section-title">Total do Casal</div>
     <div class="income-card" style="background:rgba(0,212,170,.08);border-color:rgba(0,212,170,.2);">
@@ -643,7 +643,7 @@ function checkSession(){
 // ── State ──
 let currentUser=null;
 let transactions=[],goals=[],bills=[],invests=[];
-let income={eu:{sal:0,fre:0,out:0},conjuge:{sal:0,fre:0,out:0}};
+let income={};
 let names={eu:'Eu',conjuge:'Cônjuge'};
 let receiptCount=0;
 let viewYear=new Date().getFullYear(), viewMonth=new Date().getMonth();
@@ -664,7 +664,15 @@ async function load(){
         goals=d.goals||[];
         bills=d.bills||[];
         invests=d.invests||[];
-        income=d.income||{eu:{sal:0,fre:0,out:0},conjuge:{sal:0,fre:0,out:0}};
+        // Load income - migrate old flat format {eu:{sal,fre,out}} to new per-month format
+        const rawIncome=d.income||{};
+        // Detect old format: income.eu has sal/fre/out directly (not nested by month)
+        if(rawIncome.eu&&typeof rawIncome.eu.sal==='number'){
+          // Old format - keep as-is but we'll treat it as legacy; new saves will use per-month
+          income={};
+        } else {
+          income=rawIncome;
+        }
         names=d.names||{eu:'Eu',conjuge:'Cônjuge'};
         receiptCount=d.receiptCount||0;
         document.getElementById('uName1').textContent=names.eu;
@@ -751,7 +759,7 @@ function changeMonth(d){
   viewMonth+=d;
   if(viewMonth>11){viewMonth=0;viewYear++;}
   if(viewMonth<0){viewMonth=11;viewYear--;}
-  refreshMonthLabel();updateAll();
+  refreshMonthLabel();updateAll();if(currentUser)loadIncomeFields();
 }
 function refreshMonthLabel(){
   const lbl=new Date(viewYear,viewMonth,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'}).replace(/^\w/,c=>c.toUpperCase());
@@ -767,8 +775,10 @@ function monthTx(){return transactions.filter(inViewMonth);}
 // ══════════════════════════════════════════════
 //  HELPERS
 // ══════════════════════════════════════════════
+function viewMonthKey(){return `${viewYear}-${String(viewMonth+1).padStart(2,'0')}`;}
+function incomeForUser(u){const ym=viewMonthKey();return income[u]?.[ym]||{sal:0,fre:0,out:0};}
 function incomeTotal(){
-  const s=u=>(income[u]?.sal||0)+(income[u]?.fre||0)+(income[u]?.out||0);
+  const s=u=>{const d=incomeForUser(u);return(d.sal||0)+(d.fre||0)+(d.out||0);};
   return s('eu')+s('conjuge');
 }
 function billsTotal(){return bills.reduce((a,b)=>a+(b.val||0),0);}
@@ -1144,7 +1154,7 @@ async function handleImage(event){
   const base64=await fileToBase64(file);
   try{
     const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-      model:"claude-sonnet-4-20250514",max_tokens:1000,
+      model:"claude-sonnet-4-6",max_tokens:1000,
       messages:[{role:"user",content:[
         {type:"image",source:{type:"base64",media_type:file.type||"image/jpeg",data:base64}},
         {type:"text",text:`Analise este recibo/nota fiscal. Responda APENAS com JSON válido (sem markdown):\n{"descricao":"descrição","categoria":"Supermercado|Combustível|Alimentação|Saúde|Lazer|Vestuário|Tecnologia|Moradia|Transporte|Educação|Farmácia|Contas|Pets|Presentes|Viagem|Trabalho|Outros","valor":0.00,"data":"DD/MM/YYYY","estabelecimento":"nome","resumo":"resumo em 1 frase"}`}
@@ -1310,19 +1320,44 @@ function deleteAport(invId,aportId){
 // ══════════════════════════════════════════════
 //  INCOME
 // ══════════════════════════════════════════════
+function parseIncomeVal(v){
+  if(typeof v==='number')return v;
+  if(!v)return 0;
+  // accept "1.345,68" or "1345.68"
+  const s=String(v).trim().replace(/[R$\s]/g,'');
+  if(s.includes(',')&&s.includes('.')){
+    // Brazilian: 1.345,68 -> 1345.68
+    return parseFloat(s.replace(/\./g,'').replace(',','.'));
+  } else if(s.includes(',')){
+    return parseFloat(s.replace(',','.'));
+  }
+  return parseFloat(s)||0;
+}
+function fmtIncomeInput(el){
+  // Allow only digits, comma, dot
+  let v=el.value.replace(/[^0-9.,]/g,'');
+  el.value=v;
+}
+function fmtFieldBR(v){
+  if(!v||v===0)return '';
+  // Format number as Brazilian: 1345.68 -> 1.345,68
+  return v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
 function loadIncomeFields(){
   if(!currentUser)return;
-  const d=income[currentUser]||{sal:0,fre:0,out:0};
-  document.getElementById('salario').value=d.sal||'';
-  document.getElementById('freelance').value=d.fre||'';
-  document.getElementById('outrosReceita').value=d.out||'';
+  const d=incomeForUser(currentUser);
+  document.getElementById('salario').value=fmtFieldBR(d.sal);
+  document.getElementById('freelance').value=fmtFieldBR(d.fre);
+  document.getElementById('outrosReceita').value=fmtFieldBR(d.out);
 }
 function saveIncome(){
   if(!currentUser)return;
-  income[currentUser]={
-    sal:parseFloat(document.getElementById('salario').value)||0,
-    fre:parseFloat(document.getElementById('freelance').value)||0,
-    out:parseFloat(document.getElementById('outrosReceita').value)||0,
+  const ym=viewMonthKey();
+  if(!income[currentUser])income[currentUser]={};
+  income[currentUser][ym]={
+    sal:parseIncomeVal(document.getElementById('salario').value),
+    fre:parseIncomeVal(document.getElementById('freelance').value),
+    out:parseIncomeVal(document.getElementById('outrosReceita').value),
   };
   persist();updateAll();
 }
@@ -1370,6 +1405,7 @@ window.closeAportModal=closeAportModal;
 window.saveAport=saveAport;
 window.deleteAport=deleteAport;
 window.saveIncome=saveIncome;
+window.fmtIncomeInput=fmtIncomeInput;
 
 // Carrega dados do Firebase
 checkSession();
