@@ -482,6 +482,7 @@ select.form-input{appearance:none;-webkit-appearance:none;background-image:url("
         <option>🏥 Saúde</option><option>🎉 Lazer</option><option>👔 Vestuário</option>
         <option>📱 Tecnologia</option><option>🏠 Moradia</option><option>🚗 Transporte</option>
         <option>📚 Educação</option><option>💊 Farmácia</option><option>⚡ Contas</option>
+        <option>💧 Água</option><option>⚡ Energia</option>
         <option>🐾 Pets</option><option>🎁 Presentes</option><option>✈️ Viagem</option>
         <option>💼 Trabalho</option><option>📦 Outros</option>
       </select>
@@ -508,6 +509,7 @@ select.form-input{appearance:none;-webkit-appearance:none;background-image:url("
         <option>🏥 Saúde</option><option>🎉 Lazer</option><option>👔 Vestuário</option>
         <option>📱 Tecnologia</option><option>🏠 Moradia</option><option>🚗 Transporte</option>
         <option>📚 Educação</option><option>💊 Farmácia</option><option>⚡ Contas</option>
+        <option>💧 Água</option><option>⚡ Energia</option>
         <option>🐾 Pets</option><option>🎁 Presentes</option><option>✈️ Viagem</option>
         <option>💼 Trabalho</option><option>📦 Outros</option>
       </select>
@@ -581,6 +583,21 @@ select.form-input{appearance:none;-webkit-appearance:none;background-image:url("
     <input type="hidden" id="aportInvId">
     <button class="btn btn-gold" onclick="saveAport()">💾 Registrar Aporte</button>
     <button class="btn btn-sec" onclick="closeAportModal()">Cancelar</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: CATEGORY DETAIL ══ -->
+<div class="modal-overlay" id="catDetailModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="catDetailTitle">Categoria</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;background:var(--surface2);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;">
+      <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;">Total gasto</div>
+      <div style="font-size:20px;font-weight:700;color:var(--danger);" id="catDetailTotal">R$ 0,00</div>
+    </div>
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);margin-bottom:8px;" id="catDetailCount"></div>
+    <div id="catDetailList" style="max-height:55vh;overflow-y:auto;"></div>
+    <button class="btn btn-sec" style="margin-top:12px;" onclick="closeCatDetail()">Fechar</button>
   </div>
 </div>
 
@@ -908,7 +925,7 @@ function renderCats(cats,total){
         badge=`<span class="cat-badge ok">✅ ${gp}%</span>`;
       }
     }
-    return `<div class="cat-card ${cardClass}">
+    return `<div class="cat-card ${cardClass}" onclick="openCatDetail('${cat.replace(/'/g,"\\'")}')">
       <div class="cat-header"><div class="cat-emoji">${cat.split(' ')[0]}</div>${goal?badge:`<div style="font-size:10px;color:var(--text-muted)">${pct}%</div>`}</div>
       <div class="cat-name">${cat.replace(/^[^ ]+ /,'')}</div>
       <div class="cat-amount ${amountClass}">${fmt(val)}</div>
@@ -974,6 +991,55 @@ function txHTML(t){
     ${canDel?`<button class="tx-delete" onclick="deleteTx('${t.id}');event.stopPropagation()">✕</button>`:'<div style="width:20px;"></div>'}
   </div>`;
 }
+// ══════════════════════════════════════════════
+//  CATEGORY DETAIL MODAL
+// ══════════════════════════════════════════════
+function openCatDetail(cat){
+  const txs=[...monthTx()].filter(t=>(t.cat||'📦 Outros')===cat).reverse();
+  const total=txs.reduce((a,t)=>a+t.val,0);
+  const emoji=cat.split(' ')[0];
+  const name=cat.replace(/^[^ ]+ /,'');
+  document.getElementById('catDetailTitle').textContent=`${emoji} ${name}`;
+  document.getElementById('catDetailTotal').textContent=fmt(total);
+  document.getElementById('catDetailCount').textContent=`${txs.length} transaç${txs.length===1?'ão':'ões'} este mês`;
+  const cats=catTotals();
+  document.getElementById('catDetailList').innerHTML=txs.length
+    ? txs.map(t=>{
+        const isEu=t.user==='eu';
+        const uc=isEu?'rgba(0,212,170,.15)':'rgba(244,114,182,.15)';
+        const utc=isEu?'var(--accent)':'var(--pink)';
+        const canDel=t.user===currentUser;
+        const ci=Object.keys(cats).indexOf(t.cat);
+        const cc=COLORS[ci>=0?ci%COLORS.length:0];
+        return `<div class="transaction-item">
+          <div class="tx-icon" style="background:${cc}22">${emoji}</div>
+          <div class="tx-info">
+            <div class="tx-name">${t.desc||'Sem descrição'}</div>
+            <div class="tx-cat">${t.date||''}</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="tx-amount">-${fmt(t.val)}</div>
+            <span class="tx-ubadge" style="background:${uc};color:${utc};">${names[t.user]||t.user}</span>
+          </div>
+          ${canDel?`<button class="tx-delete" style="opacity:1;" onclick="deleteTxFromCat('${t.id}','${cat.replace(/'/g,"\\'")}');event.stopPropagation()">✕</button>`:'<div style="width:20px;"></div>'}
+        </div>`;
+      }).join('')
+    : `<div class="empty-state"><div class="empty-icon">🧾</div><div class="empty-title">Nenhum gasto</div><div class="empty-sub">Nenhuma transação nesta categoria este mês</div></div>`;
+  document.getElementById('catDetailModal').classList.add('open');
+}
+function closeCatDetail(){document.getElementById('catDetailModal').classList.remove('open');}
+document.getElementById('catDetailModal').addEventListener('click',function(e){if(e.target===this)closeCatDetail();});
+function deleteTxFromCat(id,cat){
+  const t=transactions.find(x=>x.id===id);
+  if(t&&t.user!==currentUser){showToast('⚠️ Só pode excluir seus gastos');return;}
+  transactions=transactions.filter(x=>x.id!==id);
+  persist();updateAll();
+  // Reopen the modal with updated data (or close if empty)
+  const remaining=monthTx().filter(tx=>(tx.cat||'📦 Outros')===cat);
+  if(remaining.length>0){openCatDetail(cat);}else{closeCatDetail();}
+  showToast('🗑️ Removido');
+}
+
 function deleteTx(id){
   const t=transactions.find(x=>x.id===id);
   if(t&&t.user!==currentUser){showToast('⚠️ Só pode excluir seus gastos');return;}
@@ -1406,6 +1472,9 @@ window.saveAport=saveAport;
 window.deleteAport=deleteAport;
 window.saveIncome=saveIncome;
 window.fmtIncomeInput=fmtIncomeInput;
+window.openCatDetail=openCatDetail;
+window.closeCatDetail=closeCatDetail;
+window.deleteTxFromCat=deleteTxFromCat;
 
 // Carrega dados do Firebase
 checkSession();
