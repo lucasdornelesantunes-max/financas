@@ -588,19 +588,20 @@ select.form-input{appearance:none;-webkit-appearance:none;background-image:url("
 
 <!-- Firebase SDK -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
+import { getAI, getGenerativeModel, GoogleAIBackend } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-ai.js";
 
 // ══════════════════════════════════════════════
 //  FIREBASE CONFIG
 // ══════════════════════════════════════════════
 const firebaseConfig = {
-  apiKey: "AIzaSyBNjveG_5dJv2ODtautCsbuNxUTT3hObnE",
-  authDomain: "financas-casal-8de0f.firebaseapp.com",
-  projectId: "financas-casal-8de0f",
-  storageBucket: "financas-casal-8de0f.firebasestorage.app",
-  messagingSenderId: "676638771866",
-  appId: "1:676638771866:web:e467cd2fbda649201dad23"
+  apiKey: "AIzaSyCKm29PefWojdRNrgxYmOxKRG80btJ6hew",
+  authDomain: "financas-casal-a39e7.firebaseapp.com",
+  projectId: "financas-casal-a39e7",
+  storageBucket: "financas-casal-a39e7.firebasestorage.app",
+  messagingSenderId: "110345938298",
+  appId: "1:110345938298:web:6fc1f04d86e420e833a2c3"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -1171,6 +1172,19 @@ document.getElementById('addModal').addEventListener('click',function(e){if(e.ta
 // ══════════════════════════════════════════════
 //  IMAGE / AI
 // ══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+//  LEITURA DE RECIBOS COM IA (Firebase AI Logic)
+//  Sem chave de API no código — usa o próprio Firebase
+// ══════════════════════════════════════════════
+let _aiModel=null;
+function getAiModel(){
+  if(!_aiModel){
+    const ai=getAI(app,{backend:new GoogleAIBackend()});
+    _aiModel=getGenerativeModel(ai,{model:'gemini-2.5-flash'});
+  }
+  return _aiModel;
+}
+
 async function handleImage(event){
   const file=event.target.files[0];if(!file)return;
   const reader=new FileReader();
@@ -1181,15 +1195,13 @@ async function handleImage(event){
   document.getElementById('cameraZone').style.opacity='.5';
   const base64=await fileToBase64(file);
   try{
-    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-      model:"claude-sonnet-4-20250514",max_tokens:1000,
-      messages:[{role:"user",content:[
-        {type:"image",source:{type:"base64",media_type:file.type||"image/jpeg",data:base64}},
-        {type:"text",text:`Analise este recibo/nota fiscal. Responda APENAS com JSON válido (sem markdown):\n{"descricao":"descrição","categoria":"Supermercado|Combustível|Alimentação|Saúde|Lazer|Vestuário|Tecnologia|Moradia|Transporte|Educação|Farmácia|Contas|Pets|Presentes|Viagem|Trabalho|Outros","valor":0.00,"data":"DD/MM/YYYY","estabelecimento":"nome","resumo":"resumo em 1 frase"}`}
-      ]}]
-    })});
-    const d=await res.json();
-    const parsed=JSON.parse((d.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim());
+    const model=getAiModel();
+    const result=await model.generateContent([
+      {inlineData:{mimeType:file.type||'image/jpeg',data:base64}},
+      {text:`Analise este recibo/nota fiscal brasileira. Responda APENAS com JSON válido (sem markdown, sem texto extra):\n{"descricao":"descrição curta","categoria":"Supermercado|Combustível|Alimentação|Saúde|Lazer|Vestuário|Tecnologia|Moradia|Transporte|Educação|Farmácia|Contas|Pets|Presentes|Viagem|Trabalho|Outros","valor":0.00,"data":"DD/MM/YYYY","estabelecimento":"nome do estabelecimento","resumo":"resumo em 1 frase"}\nO valor deve ser o TOTAL da compra em reais. A data deve ser a data da compra no recibo.`}
+    ]);
+    const text=result.response.text()||'{}';
+    const parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
     const cm={'Supermercado':'🛒 Supermercado','Combustível':'⛽ Combustível','Alimentação':'🍔 Alimentação','Saúde':'🏥 Saúde','Lazer':'🎉 Lazer','Vestuário':'👔 Vestuário','Tecnologia':'📱 Tecnologia','Moradia':'🏠 Moradia','Transporte':'🚗 Transporte','Educação':'📚 Educação','Farmácia':'💊 Farmácia','Contas':'⚡ Contas','Pets':'🐾 Pets','Presentes':'🎁 Presentes','Viagem':'✈️ Viagem','Trabalho':'💼 Trabalho','Outros':'📦 Outros'};
     if(parsed.descricao)document.getElementById('txDesc').value=parsed.estabelecimento||parsed.descricao;
     if(parsed.categoria)document.getElementById('txCat').value=cm[parsed.categoria]||'📦 Outros';
@@ -1199,7 +1211,8 @@ async function handleImage(event){
     document.getElementById('aiResult').classList.add('visible');
     receiptCount++;persist();
   }catch(e){
-    document.getElementById('aiDescription').textContent='⚠️ Não foi possível analisar. Preencha manualmente.';
+    console.error('Erro IA:',e);
+    document.getElementById('aiDescription').textContent='⚠️ Não foi possível analisar ('+(e.message||'erro')+'). Preencha manualmente.';
     document.getElementById('aiResult').classList.add('visible');
   }
   document.getElementById('loadingState').classList.remove('visible');
